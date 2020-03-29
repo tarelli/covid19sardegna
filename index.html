@@ -13,8 +13,40 @@
 
         gtag('config', 'UA-162002549-1');
     </script>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
     <script>
+
+
+        const population = {
+            "Lombardia": 10060574,
+            "Lazio": 5879082,
+            "Campania": 5801692,
+            "Sicilia": 4999891,
+            "Veneto": 4905854,
+            "Emilia Romagna": 4459477,
+            "Piemonte": 4356406,
+            "Puglia": 4029053,
+            "Toscana": 3729641,
+            "Calabria": 1947131,
+            "Sardegna": 1639591,
+            "Liguria": 1550640,
+            "Marche": 1525271,
+            "Abruzzo": 311580,
+            "Friuli Venezia Giulia": 1215220,
+            "P.A. Bolzano": 533050,
+            "P.A. Trento": 541380,
+            "Umbria": 882015,
+            "Basilicata": 562869,
+            "Molise": 305617,
+            "Valle d'Aosta": 125666
+        };
 
         function transpose(data) {
             let result = {};
@@ -142,17 +174,18 @@
 
         function transposeAndFilterByField(data, field, value) {
             let result = transpose(filter(data, field, value));
-            result.mode = 'lines+markers';
+
             if (field == "denominazione_regione") {
                 result.visible = value == "Sardegna" ? true : "legendonly";
             }
+            result.mode = 'lines+markers';
             result.name = value;
             return result;
         }
 
-        function plotRegione(json, field, title) {
+        function plotRegione(json, field, title, mode) {
             let subset = json.reduce(function (r, a) {
-                r.push({ 'x': a.data, 'y': a[field], 'denominazione_regione': a.denominazione_regione });
+                r.push({ 'x': a.data, 'y': mode == 'totale' ? a[field] : a[field] / population[a.denominazione_regione], 'denominazione_regione': a.denominazione_regione });
                 return r;
             }, []);
 
@@ -184,39 +217,48 @@
             Plotly.newPlot(field, data, getLayout(title));
         }
 
-        fetch("./dpc-covid19-ita-regioni.json")
-            .then(response => response.json())
-            .then(json => {
+        function plotAll(mode = 'totale') {
+            fetch("./dpc-covid19-ita-regioni.json")
+                .then(response => response.json())
+                .then(json => {
+                    let titleStart = mode == "totale" ? "Totale " : "Rapporto ";
+                    plotRegione(json, "totale_casi", titleStart + "casi COVID-19 confermati in Italia divisi per regione", mode);
+                    plotRegione(json, "tamponi", titleStart + "numero di tamponi effettuati in Italia divisi per regione", mode);
+                    plotRegione(json, "isolamento_domiciliare", titleStart + "persone in isolamento domiciliare in Italia divisi per regione", mode);
+                    plotRegione(json, "totale_ospedalizzati", titleStart + "persone ospedalizzate per COVID-19 in Italia divisi per regione", mode);
+                    plotRegione(json, "ricoverati_con_sintomi", titleStart + "ricoverati con sintomi da COVID-19 in Italia divisi per regione", mode);
+                    plotRegione(json, "terapia_intensiva", titleStart + "persone in terapia intensiva per COVID-19 in Italia divisi per regione", mode);
+                    plotRegione(json, "deceduti", titleStart + "decessi attribuiti al COVID-19 in Italia divisi per regione", mode);
 
-                plotRegione(json, "totale_casi", "Totale casi COVID-19 confermati in Italia per regione");
-                plotRegione(json, "isolamento_domiciliare", "Totale in isolamento domiciliare in Italia divisi per regione");
-                plotRegione(json, "totale_ospedalizzati", "Totale ospedalizzati per COVID-19 in Italia divisi per regione");
-                plotRegione(json, "ricoverati_con_sintomi", "Totale ricoverati con sintomi da COVID-19 in Italia divisi per regione");
-                plotRegione(json, "terapia_intensiva", "Totale in terapia intensiva per COVID-19 in Italia divisi per regione");
-                plotRegione(json, "deceduti", "Totale decessi attribuiti al COVID-19 in Italia divisi per regione");
+                });
 
+            fetch("./dpc-covid19-ita-province.json")
+                .then(response => response.json())
+                .then(json => {
+                    let subset = json.reduce(function (r, a) {
+                        r.push({ 'x': a.data, 'y': a.totale_casi, 'denominazione_provincia': a.denominazione_provincia });
+                        return r;
+                    }, []);
+
+                    data = [
+                        transposeAndFilterByField(subset, "denominazione_provincia", "Cagliari"),
+                        transposeAndFilterByField(subset, "denominazione_provincia", "Sud Sardegna"),
+                        transposeAndFilterByField(subset, "denominazione_provincia", "Sassari"),
+                        transposeAndFilterByField(subset, "denominazione_provincia", "Oristano"),
+                        transposeAndFilterByField(subset, "denominazione_provincia", "Nuoro")
+                    ];
+
+                    Plotly.newPlot('province', data, getLayout("Totale casi COVID-19 confermati in Sardegna divisi per provincia"));
+
+                });
+        }
+
+        $(function () {
+            plotAll();
+            $("#switch :input").change(function () {
+                plotAll(this.id)
             });
-
-        fetch("./dpc-covid19-ita-province.json")
-            .then(response => response.json())
-            .then(json => {
-                let subset = json.reduce(function (r, a) {
-                    r.push({ 'x': a.data, 'y': a.totale_casi, 'denominazione_provincia': a.denominazione_provincia });
-                    return r;
-                }, []);
-
-                data = [
-                    transposeAndFilterByField(subset, "denominazione_provincia", "Cagliari"),
-                    transposeAndFilterByField(subset, "denominazione_provincia", "Sud Sardegna"),
-                    transposeAndFilterByField(subset, "denominazione_provincia", "Sassari"),
-                    transposeAndFilterByField(subset, "denominazione_provincia", "Oristano"),
-                    transposeAndFilterByField(subset, "denominazione_provincia", "Nuoro")
-                ];
-
-                Plotly.newPlot('province', data, getLayout("Totale casi COVID-19 confermati in Sardegna divisi per provincia"));
-
-            });
-
+        });
 
     </script>
 
@@ -224,21 +266,25 @@
 
 <body style="font-family: 'Playfair Display', serif; color:#444444; background:#fafafa;  padding:0;">
     <h1 style="font-size: 28pt; margin-left:10px;"> Dati COVID-19 Sardegna e Italia</h1>
-    <p style="font-size: 10pt; margin-top:-20px; margin-left:10px;"> Regione selezionata: Sardegna (Clicca sulla legenda
+    <p style="font-size: 10pt; margin-top:-5px; margin-left:10px;"> Regione selezionata: Sardegna (Clicca sulla legenda
         per attivare altre regioni)</p>
-    <div style="background:#ffffff;     padding-bottom: 40px;">
+    <div class="btn-group btn-group-toggle" style="margin: 10px;" data-toggle="buttons" id="switch">
+        <label class="btn btn-secondary active" style="outline:none">
+            <input type="radio" name="options" id="totale" checked> Totale casi
+        </label>
+        <label class="btn btn-secondary" style="outline:none">
+            <input type="radio" name="options" id="rapporto"> Rapporto per numero di abitanti
+        </label>
+    </div>
+    <div style=" background:#ffffff; padding-bottom: 40px;">
         <div id='totale_casi'></div>
-        <div id='province'></div>
         <div id='tamponi'></div>
         <div id='deceduti'></div>
         <div id='terapia_intensiva'></div>
         <div id='totale_ospedalizzati'></div>
         <div id='ricoverati_con_sintomi'></div>
         <div id='isolamento_domiciliare'></div>
-
-
-
-
+        <div id='province'></div>
     </div>
     <p style="font-size: 10pt;margin-left:10px;">Ultimo Aggiornamento: 29 Marzo 2020</p>
     <p style="font-size: 10pt;margin-left:10px;">Fonte dati:
