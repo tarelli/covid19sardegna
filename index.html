@@ -1,25 +1,256 @@
 <html>
-    <title>Dati COVID-19 Sardegna</title>
+<title>Dati COVID-19 Italia</title>
+
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
     <link rel="icon" href="https://image.flaticon.com/icons/svg/299/299691.svg" type="image/svg+xml" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-162002549-1"></script>
     <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-    gtag('config', 'UA-162002549-1');
+        gtag('config', 'UA-162002549-1');
     </script>
+    <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+    <script>
+
+        function transpose(data) {
+            let result = {};
+            for (let row of data) {
+                for (let [key, value] of Object.entries(row)) {
+                    result[key] = result[key] || [];
+                    result[key].push(value);
+                }
+            }
+            return result;
+        }
+
+        function filter(data, key, value) {
+            return data.reduce(function (r, a) {
+                if (a[key] == value) {
+                    r.push(a);
+                }
+                return r;
+            }, []);
+        }
+
+
+        function getLayout(title) {
+            return {
+                colorway: ["#7fd0c3",
+                    "#7a5681",
+                    "#a4bf8b",
+                    "#4d6e97",
+                    "#d3a784",
+                    "#72b6d8",
+                    "#965857",
+                    "#407760",
+                    "#cba4cc",
+                    "#6a6237"],
+                showlegend: true,
+                legend: {
+                    traceorder: 'normal',
+                    font: {
+                        family: 'Playfair Display',
+                        size: 12,
+                        color: '#444444'
+                    },
+                },
+                xaxis: {
+                    showline: true,
+                    showgrid: true,
+                    showticklabels: true,
+                    linecolor: 'rgb(204,204,204)',
+                    linewidth: 1,
+                    autotick: false,
+                    ticks: 'outside',
+                    tickcolor: 'rgb(204,204,204)',
+                    tickwidth: 1,
+                    ticklen: 5,
+                    tickfont: {
+                        family: 'Playfair Display',
+                        size: 10,
+                        color: '#444444'
+                    }
+                },
+                yaxis: {
+                    showgrid: true,
+                    zeroline: false,
+                    showline: true,
+                    linecolor: 'rgb(204,204,204)',
+                    showticklabels: true,
+                    tickfont: {
+                        family: 'Playfair Display',
+                        size: 10,
+                        color: '#444444'
+                    }
+                },
+                autosize: true,
+
+                annotations: [
+                    {
+                        xref: 'paper',
+                        yref: 'paper',
+                        x: 0.0,
+                        y: 1.05,
+                        xanchor: 'left',
+                        yanchor: 'bottom',
+                        text: title,
+                        font: {
+                            family: 'Playfair Display',
+                            size: 30,
+                            color: '#444444'
+                        },
+                        showarrow: false
+                    },
+                    {
+                        xref: 'paper',
+                        yref: 'paper',
+                        x: 0.5,
+                        y: -0.17,
+                        xanchor: 'center',
+                        yanchor: 'top',
+                        text: 'Fonte dati: Ministero della Salute e Dipartimento della Protezione Civile',
+                        showarrow: false,
+                        font: {
+                            family: 'Playfair Display',
+                            size: 10,
+                            color: '#999999'
+                        }
+                    }
+                    ,
+                    {
+                        xref: 'paper',
+                        yref: 'paper',
+                        x: 0.5,
+                        y: -0.22,
+                        xanchor: 'center',
+                        yanchor: 'top',
+                        text: 'Licenza: CCBY',
+                        showarrow: false,
+                        font: {
+                            family: 'Playfair Display',
+                            size: 10,
+                            color: '#999999'
+                        }
+                    }
+                ]
+            };
+        }
+
+        function transposeAndFilterByField(data, field, value) {
+            let result = transpose(filter(data, field, value));
+            result.mode = 'lines+markers';
+            if (field == "denominazione_regione") {
+                result.visible = value == "Sardegna" ? true : "legendonly";
+            }
+            result.name = value;
+            return result;
+        }
+
+        function plotRegione(json, field, title) {
+            let subset = json.reduce(function (r, a) {
+                r.push({ 'x': a.data, 'y': a[field], 'denominazione_regione': a.denominazione_regione });
+                return r;
+            }, []);
+
+            data = [
+                transposeAndFilterByField(subset, "denominazione_regione", "Sardegna"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Lombardia"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Piemonte"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Lazio"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Toscana"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Sicilia"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Emilia Romagna"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Liguria"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Campania"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Marche"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Calabria"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Puglia"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Friuli Venezia Giulia"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Veneto"),
+                transposeAndFilterByField(subset, "denominazione_regione", "P.A. Trento"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Umbria"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Abruzzo"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Basilicata"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Molise"),
+                transposeAndFilterByField(subset, "denominazione_regione", "P.A. Bolzano"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Valle d'Aosta"),
+
+            ];
+
+            Plotly.newPlot(field, data, getLayout(title));
+        }
+
+        fetch("./dpc-covid19-ita-regioni.json")
+            .then(response => response.json())
+            .then(json => {
+
+                plotRegione(json, "totale_casi", "Totale casi COVID-19 confermati in Italia per regione");
+                plotRegione(json, "isolamento_domiciliare", "Totale in isolamento domiciliare in Italia divisi per regione");
+                plotRegione(json, "totale_ospedalizzati", "Totale ospedalizzati per COVID-19 in Italia divisi per regione");
+                plotRegione(json, "ricoverati_con_sintomi", "Totale ricoverati con sintomi da COVID-19 in Italia divisi per regione");
+                plotRegione(json, "terapia_intensiva", "Totale in terapia intensiva per COVID-19 in Italia divisi per regione");
+                plotRegione(json, "deceduti", "Totale decessi attribuiti al COVID-19 in Italia divisi per regione");
+
+            });
+
+        fetch("./dpc-covid19-ita-province.json")
+            .then(response => response.json())
+            .then(json => {
+                let subset = json.reduce(function (r, a) {
+                    r.push({ 'x': a.data, 'y': a.totale_casi, 'denominazione_provincia': a.denominazione_provincia });
+                    return r;
+                }, []);
+
+                data = [
+                    transposeAndFilterByField(subset, "denominazione_provincia", "Cagliari"),
+                    transposeAndFilterByField(subset, "denominazione_provincia", "Sud Sardegna"),
+                    transposeAndFilterByField(subset, "denominazione_provincia", "Sassari"),
+                    transposeAndFilterByField(subset, "denominazione_provincia", "Oristano"),
+                    transposeAndFilterByField(subset, "denominazione_provincia", "Nuoro")
+                ];
+
+                Plotly.newPlot('province', data, getLayout("Totale casi COVID-19 confermati in Sardegna divisi per provincia"));
+
+            });
+
+
+    </script>
+
 </head>
+
 <body style="font-family: 'Playfair Display', serif; color:#444444; background:#fafafa;  padding:0;">
-<h1 style="font-size: 28pt; margin-left:10px;"> Totale casi COVID-19 confermati in Sardegna</h1>
-<div style="background:#ffffff; padding:0;">
-    <iframe width="789.7048517520216" height="400.5" seamless frameborder="0" scrolling="no" style="margin:0 auto; display:block;" src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQGCCYCT3gguI5Mh5ci5Wko9IfiNgFQ9gSWxLozpeTku512wtu7Y4BQcIR9V6ZNzWeBS_OIRPUjhySr/pubchart?oid=460152834&amp;format=interactive"></iframe>
-</div>
-<p style="font-size: 10pt;margin-left:10px;">Ultimo Aggiornamento: 28 Marzo 2020</p>
-<p style="font-size: 10pt;margin-left:10px;">Fonte dati: <img width="120px" src="https://www.regione.sardegna.it/immagini/1_240_20120705162029.gif"></p>
-<p style="font-size: 10pt;margin-left:10px;">Licenza: &nbsp;&nbsp;<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img width="50px" alt="Creative Commons Licence" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a></p>
+    <h1 style="font-size: 28pt; margin-left:10px;"> Dati COVID-19 Sardegna e Italia</h1>
+    <p style="font-size: 10pt; margin-top:-20px; margin-left:10px;"> Regione selezionata: Sardegna (Clicca sulla legenda
+        per attivare altre regioni)</p>
+    <div style="background:#ffffff;     padding-bottom: 40px;">
+        <div id='totale_casi'></div>
+        <div id='province'></div>
+        <div id='tamponi'></div>
+        <div id='deceduti'></div>
+        <div id='terapia_intensiva'></div>
+        <div id='totale_ospedalizzati'></div>
+        <div id='ricoverati_con_sintomi'></div>
+        <div id='isolamento_domiciliare'></div>
+
+
+
+
+    </div>
+    <p style="font-size: 10pt;margin-left:10px;">Ultimo Aggiornamento: 29 Marzo 2020</p>
+    <p style="font-size: 10pt;margin-left:10px;">Fonte dati:
+        <img width="120px"
+            src="https://fefana.org/wp-content/uploads/2017/09/Italy-Source-Ministero-della-Salute-600.png">
+        <img width="50px" src="https://upload.wikimedia.org/wikipedia/commons/0/06/Protezione_Civile.png">
+
+    </p>
+    <p style="font-size: 10pt;margin-left:10px;">Licenza: &nbsp;&nbsp;<a rel="license"
+            href="http://creativecommons.org/licenses/by/4.0/"><img width="50px" alt="Creative Commons Licence"
+                style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a></p>
 </body>
+
+
 </html>
