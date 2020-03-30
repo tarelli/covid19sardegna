@@ -14,13 +14,16 @@
         gtag('config', 'UA-162002549-1');
     </script>
 
-    <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-    <!-- jQuery library -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <!-- Latest compiled JavaScript -->
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/css/bootstrap-select.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.13.1/js/bootstrap-select.min.js"></script>
     <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
+
     <script>
 
 
@@ -172,63 +175,63 @@
             };
         }
 
-        function transposeAndFilterByField(data, field, value) {
+        function transposeAndFilterByField(data, field, value, selectedValues) {
             let result = transpose(filter(data, field, value));
 
             if (field == "denominazione_regione") {
-                result.visible = value == "Sardegna" ? true : "legendonly";
+                result.visible = selectedValues.indexOf(value) >= 0 ? true : "legendonly";
             }
             result.mode = 'lines+markers';
             result.name = value;
             return result;
         }
 
-        function plotRegione(json, field, title, mode) {
+        function plotRegione(json, field, title, mode, selectedValues) {
             let subset = json.reduce(function (r, a) {
                 r.push({ 'x': a.data, 'y': mode == 'totale' ? a[field] : a[field] / population[a.denominazione_regione], 'denominazione_regione': a.denominazione_regione });
                 return r;
             }, []);
 
             data = [
-                transposeAndFilterByField(subset, "denominazione_regione", "Sardegna"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Lombardia"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Piemonte"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Lazio"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Toscana"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Sicilia"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Emilia Romagna"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Liguria"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Campania"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Marche"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Calabria"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Puglia"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Friuli Venezia Giulia"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Veneto"),
-                transposeAndFilterByField(subset, "denominazione_regione", "P.A. Trento"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Umbria"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Abruzzo"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Basilicata"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Molise"),
-                transposeAndFilterByField(subset, "denominazione_regione", "P.A. Bolzano"),
-                transposeAndFilterByField(subset, "denominazione_regione", "Valle d'Aosta"),
+                transposeAndFilterByField(subset, "denominazione_regione", "Sardegna", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Lombardia", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Piemonte", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Lazio", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Toscana", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Sicilia", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Emilia Romagna", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Liguria", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Campania", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Marche", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Calabria", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Puglia", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Friuli Venezia Giulia", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Veneto", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "P.A. Trento", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Umbria", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Abruzzo", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Basilicata", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Molise", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "P.A. Bolzano", selectedValues),
+                transposeAndFilterByField(subset, "denominazione_regione", "Valle d'Aosta", selectedValues),
 
             ];
 
             Plotly.newPlot(field, data, getLayout(title));
         }
 
-        function plotAll(mode = 'totale') {
+        function plotAll(mode = 'totale', selectedValues) {
             fetch("./dpc-covid19-ita-regioni.json")
                 .then(response => response.json())
                 .then(json => {
                     let titleStart = mode == "totale" ? "Totale " : "Rapporto ";
-                    plotRegione(json, "totale_casi", titleStart + "casi COVID-19 confermati in Italia divisi per regione", mode);
-                    plotRegione(json, "tamponi", titleStart + "numero di tamponi effettuati in Italia divisi per regione", mode);
-                    plotRegione(json, "isolamento_domiciliare", titleStart + "persone in isolamento domiciliare in Italia divisi per regione", mode);
-                    plotRegione(json, "totale_ospedalizzati", titleStart + "persone ospedalizzate per COVID-19 in Italia divisi per regione", mode);
-                    plotRegione(json, "ricoverati_con_sintomi", titleStart + "ricoverati con sintomi da COVID-19 in Italia divisi per regione", mode);
-                    plotRegione(json, "terapia_intensiva", titleStart + "persone in terapia intensiva per COVID-19 in Italia divisi per regione", mode);
-                    plotRegione(json, "deceduti", titleStart + "decessi attribuiti al COVID-19 in Italia divisi per regione", mode);
+                    plotRegione(json, "totale_casi", titleStart + "casi COVID-19 confermati in Italia divisi per regione", mode, selectedValues);
+                    plotRegione(json, "tamponi", titleStart + "numero di tamponi effettuati in Italia divisi per regione", mode, selectedValues);
+                    plotRegione(json, "isolamento_domiciliare", titleStart + "persone in isolamento domiciliare in Italia divisi per regione", mode, selectedValues);
+                    plotRegione(json, "totale_ospedalizzati", titleStart + "persone ospedalizzate per COVID-19 in Italia divisi per regione", mode, selectedValues);
+                    plotRegione(json, "ricoverati_con_sintomi", titleStart + "ricoverati con sintomi da COVID-19 in Italia divisi per regione", mode, selectedValues);
+                    plotRegione(json, "terapia_intensiva", titleStart + "persone in terapia intensiva per COVID-19 in Italia divisi per regione", mode, selectedValues);
+                    plotRegione(json, "deceduti", titleStart + "decessi attribuiti al COVID-19 in Italia divisi per regione", mode, selectedValues);
 
                 });
 
@@ -254,48 +257,107 @@
         }
 
         $(function () {
-            plotAll();
+            var selectedValues = ["Sardegna"];
+            var selectedMode = "totale";
+            plotAll(selectedMode, selectedValues);
             $("#switch :input").change(function () {
-                plotAll(this.id)
+                selectedMode = this.id;
+                plotAll(selectedMode, selectedValues);
             });
+
+            $('#pickregion').on('changed.bs.select', function (e, clickedIndex, newValue, oldValue) {
+                selectedValues = $(e.currentTarget).val();
+                plotAll(selectedMode, selectedValues);
+                console.log(selectedValues);
+            });
+            $('#pickregion').selectpicker();
+            $('#pickregion').next().height("22px").width("300px");
         });
 
     </script>
-
+    <style>
+        .plot {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
-<body style="font-family: 'Playfair Display', serif; color:#444444; background:#fafafa;  padding:0;">
-    <h1 style="font-size: 28pt; margin-left:10px;"> Dati COVID-19 Sardegna e Italia</h1>
-    <p style="font-size: 10pt; margin-top:-5px; margin-left:10px;"> Regione selezionata: Sardegna (Clicca sulla legenda
-        per attivare altre regioni)</p>
-    <div class="btn-group btn-group-toggle" style="margin: 10px;" data-toggle="buttons" id="switch">
-        <label class="btn btn-secondary active" style="outline:none">
-            <input type="radio" name="options" id="totale" checked> Totale casi
-        </label>
-        <label class="btn btn-secondary" style="outline:none">
-            <input type="radio" name="options" id="rapporto"> Rapporto per numero di abitanti
-        </label>
-    </div>
-    <div style=" background:#ffffff; padding-bottom: 40px;">
-        <div id='totale_casi'></div>
-        <div id='tamponi'></div>
-        <div id='deceduti'></div>
-        <div id='terapia_intensiva'></div>
-        <div id='totale_ospedalizzati'></div>
-        <div id='ricoverati_con_sintomi'></div>
-        <div id='isolamento_domiciliare'></div>
-        <div id='province'></div>
-    </div>
-    <p style="font-size: 10pt;margin-left:10px;">Ultimo Aggiornamento: 29 Marzo 2020</p>
-    <p style="font-size: 10pt;margin-left:10px;">Fonte dati:
-        <img width="120px"
-            src="https://fefana.org/wp-content/uploads/2017/09/Italy-Source-Ministero-della-Salute-600.png">
-        <img width="50px" src="https://upload.wikimedia.org/wikipedia/commons/0/06/Protezione_Civile.png">
+<body style="font-family: 'Playfair Display', serif; color:#444444; background:#fafafa;">
+    <div class="container">
+        <h1 style="font-size: 28pt; margin-top:10px;"> Dati COVID-19 Italia</h1>
 
-    </p>
-    <p style="font-size: 10pt;margin-left:10px;">Licenza: &nbsp;&nbsp;<a rel="license"
-            href="http://creativecommons.org/licenses/by/4.0/"><img width="50px" alt="Creative Commons Licence"
-                style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a></p>
+        <div class="row justify-content-end" style="margin-top:20px;">
+            <div class="col">
+
+                <p style="font-size: 10pt; float:left; margin-right:10px; margin-top:10px"> Regione
+                    selezionata: </p>
+
+                <div>
+                    <select id="pickregion" class="selectpicker" multiple data-live-search="true" data-style="btn-info">
+                        <option>Lombardia</option>
+                        <option>Lazio</option>
+                        <option>Campania</option>
+                        <option>Sicilia</option>
+                        <option>Veneto</option>
+                        <option>Emilia Romagna</option>
+                        <option>Piemonte</option>
+                        <option>Puglia</option>
+                        <option>Toscana</option>
+                        <option>Calabria</option>
+                        <option selected>Sardegna</option>
+                        <option>Liguria</option>
+                        <option>Marche</option>
+                        <option>Abruzzo</option>
+                        <option>Friuli Venezia Giulia</option>
+                        <option>P.A. Bolzano</option>
+                        <option>P.A. Trento</option>
+                        <option>Umbria</option>
+                        <option>Basilicata</option>
+                        <option>Molise</option>
+                        <option>Valle d'Aosta</option>
+                    </select>
+
+                </div>
+            </div>
+            <div class="col-lg-2">
+                <div class="btn-group btn-group-toggle float-right" data-toggle="buttons" id="switch"
+                    style="height:36px;">
+                    <label class="btn btn-secondary active btn-sm btn-info" style="outline:none">
+                        <input type="radio" name="options" id="totale" checked> Totale casi
+                    </label>
+                    <label class="btn btn-secondary btn-sm btn-info" style="outline:none">
+                        <input type="radio" name="options" id="rapporto"> Rapporto per numero di abitanti
+                    </label>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- <p style="font-size: 10pt; margin-top:10px; margin-left:10px;">(Clicca sulla legenda per attivare altre regioni)</p> -->
+
+        <div>
+            <div class="plot" id='totale_casi'></div>
+            <div class="plot" id='tamponi'></div>
+            <div class="plot" id='deceduti'></div>
+            <div class="plot" id='terapia_intensiva'></div>
+            <div class="plot" id='totale_ospedalizzati'></div>
+            <div class="plot" id='ricoverati_con_sintomi'></div>
+            <div class="plot" id='isolamento_domiciliare'></div>
+            <div class="plot" id='province'></div>
+        </div>
+        <p style="font-size: 10pt;margin-left:10px;">Ultimo Aggiornamento: 29 Marzo 2020</p>
+        <p style="font-size: 10pt;margin-left:10px;">Fonte dati:
+            <img width="120px"
+                src="https://fefana.org/wp-content/uploads/2017/09/Italy-Source-Ministero-della-Salute-600.png">
+            <img width="50px" src="https://upload.wikimedia.org/wikipedia/commons/0/06/Protezione_Civile.png">
+
+        </p>
+        <p style="font-size: 10pt;margin-left:10px;">Licenza: &nbsp;&nbsp;<a rel="license"
+                href="http://creativecommons.org/licenses/by/4.0/"><img width="50px" alt="Creative Commons Licence"
+                    style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/88x31.png" /></a></p>
+    </div>
 </body>
 
 
