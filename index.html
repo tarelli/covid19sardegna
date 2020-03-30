@@ -271,6 +271,7 @@
 
                     Plotly.newPlot('province', data, getLayout("Totale casi COVID-19 confermati in Sardegna divisi per provincia"));
 
+
                     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
                     $("#latestUpdate").text(latestUpdate.toLocaleString('it-IT', options));
                 });
@@ -305,8 +306,9 @@
 
 <body style="font-family: 'Playfair Display', serif; color:#444444; background:#fafafa;">
     <div class="container">
-        <h1 style="font-size: 28pt; margin-top:10px;"> Dati Aggiornati COVID-19 Italia</h1>
-
+        <h1 style="font-size: 28pt; margin-top:10px;"> Dati COVID-19 Italia</h1>
+        <p style="font-size: 10pt; float:left;">Ultimo Aggiornamento: &nbsp;</p>
+        <p id="latestUpdate" style="font-size: 10pt;margin-left:10px;">?</p>
         <div class="row justify-content-end" style="margin-top:20px;">
             <div class="col">
 
@@ -354,7 +356,6 @@
             </div>
         </div>
 
-
         <!-- <p style="font-size: 10pt; margin-top:10px; margin-left:10px;">(Clicca sulla legenda per attivare altre regioni)</p> -->
 
         <div>
@@ -367,8 +368,7 @@
             <div class="plot" id='isolamento_domiciliare'></div>
             <div class="plot" id='province'></div>
         </div>
-        <p style="font-size: 10pt;margin-left:10px; float:left;">Ultimo Aggiornamento: &nbsp;</p>
-        <p id="latestUpdate" style="font-size: 10pt;margin-left:10px;">?</p>
+        
         <p style="font-size: 10pt;margin-left:10px;">Fonte dati:
             <img width="120px"
                 src="https://fefana.org/wp-content/uploads/2017/09/Italy-Source-Ministero-della-Salute-600.png">
