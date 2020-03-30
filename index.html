@@ -3,7 +3,7 @@
 
 <head>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
-    <link rel="icon" href="https://image.flaticon.com/icons/svg/299/299691.svg" type="image/svg+xml" />
+    <link rel="icon" href="https://www.co.iredell.nc.us/ImageRepository/Document?documentId=14185" type="image/png" />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-162002549-1"></script>
     <script>
@@ -83,7 +83,18 @@
                     "#965857",
                     "#407760",
                     "#cba4cc",
-                    "#6a6237"],
+                    "#6a6237",
+                    "#c79a4e",
+                    "#6b46c4",
+                    "#74b748",
+                    "#cb56c1",
+                    "#516833",
+                    "#d05f80",
+                    "#5bae9a",
+                    "#d45133",
+                    "#7d8bc5",
+                    "#844533",
+                    "#63386b"],
                 showlegend: true,
                 legend: {
                     traceorder: 'normal',
@@ -221,7 +232,10 @@
         }
 
         function plotAll(mode = 'totale', selectedValues) {
-            fetch("./dpc-covid19-ita-regioni.json")
+            var latestUpdate = new Date("2010-02-24T18:00:00");
+
+            var latestUpdate = 0;
+            fetch("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-regioni.json")
                 .then(response => response.json())
                 .then(json => {
                     let titleStart = mode == "totale" ? "Totale " : "Rapporto ";
@@ -235,10 +249,14 @@
 
                 });
 
-            fetch("./dpc-covid19-ita-province.json")
+            fetch("https://raw.githubusercontent.com/pcm-dpc/COVID-19/master/dati-json/dpc-covid19-ita-province.json")
                 .then(response => response.json())
                 .then(json => {
                     let subset = json.reduce(function (r, a) {
+                        var d = new Date(a.data);
+                        if (d > latestUpdate) {
+                            latestUpdate = new Date(a.data);
+                        }
                         r.push({ 'x': a.data, 'y': a.totale_casi, 'denominazione_provincia': a.denominazione_provincia });
                         return r;
                     }, []);
@@ -253,6 +271,8 @@
 
                     Plotly.newPlot('province', data, getLayout("Totale casi COVID-19 confermati in Sardegna divisi per provincia"));
 
+                    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                    $("#latestUpdate").text(latestUpdate.toLocaleString('it-IT', options));
                 });
         }
 
@@ -285,13 +305,13 @@
 
 <body style="font-family: 'Playfair Display', serif; color:#444444; background:#fafafa;">
     <div class="container">
-        <h1 style="font-size: 28pt; margin-top:10px;"> Dati COVID-19 Italia</h1>
+        <h1 style="font-size: 28pt; margin-top:10px;"> Dati Aggiornati COVID-19 Italia</h1>
 
         <div class="row justify-content-end" style="margin-top:20px;">
             <div class="col">
 
-                <p style="font-size: 10pt; float:left; margin-right:10px; margin-top:10px"> Regione
-                    selezionata: </p>
+                <p style="font-size: 10pt; float:left; margin-right:10px; margin-top:10px"> Regioni
+                    selezionate: </p>
 
                 <div>
                     <select id="pickregion" class="selectpicker" multiple data-live-search="true" data-style="btn-info">
@@ -347,7 +367,8 @@
             <div class="plot" id='isolamento_domiciliare'></div>
             <div class="plot" id='province'></div>
         </div>
-        <p style="font-size: 10pt;margin-left:10px;">Ultimo Aggiornamento: 29 Marzo 2020</p>
+        <p style="font-size: 10pt;margin-left:10px; float:left;">Ultimo Aggiornamento: &nbsp;</p>
+        <p id="latestUpdate" style="font-size: 10pt;margin-left:10px;">?</p>
         <p style="font-size: 10pt;margin-left:10px;">Fonte dati:
             <img width="120px"
                 src="https://fefana.org/wp-content/uploads/2017/09/Italy-Source-Ministero-della-Salute-600.png">
